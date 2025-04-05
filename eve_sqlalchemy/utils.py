@@ -13,7 +13,7 @@ import copy
 import re
 
 from eve.utils import config
-from sqlalchemy.ext.declarative.api import DeclarativeMeta
+from sqlalchemy.orm import DeclarativeMeta
 
 try:
     from collections.abc import Mapping, MutableSequence, Set

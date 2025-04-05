@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import sqlalchemy.dialects.postgresql as postgresql
 from eve.exceptions import ConfigException
 from sqlalchemy import types
-from sqlalchemy.ext.declarative.api import DeclarativeMeta
+from sqlalchemy.orm import DeclarativeMeta
 
 
 class FieldConfig(object):
@@ -142,6 +142,23 @@ class RelationshipFieldConfig(FieldConfig):
     def _get_resource(self):
         try:
             return self._related_resource_configs[(self._model, self._name)]
+        except KeyError:
+            # Si no se encuentra, intenta obtener el recurso relacionado desde la propiedad 'argument'
+            arg = self._relationship.argument
+            # Si 'arg' es un modelo (DeclarativeMeta), úsalo como clave
+            if isinstance(arg, DeclarativeMeta): 
+                return self._related_resource_configs.get(arg)
+            # Si 'arg' es una función (por ejemplo, un lambda que retorna el modelo), llámala
+            elif callable(arg):
+                return self._related_resource_configs.get(arg())
+            # Si 'arg' es una cadena, se asume que ya es la clave
+            elif isinstance(arg, str):
+                return self._related_resource_configs.get(arg)
+            else:
+                raise ConfigException(
+                    'Cannot determine related resource for {model}.{field}. '
+                    'Please specify `related_resources` manually.'
+                    .format(model=self._model.__name__, field=self._name))
         except LookupError:
             try:
                 arg = self._relationship.argument
