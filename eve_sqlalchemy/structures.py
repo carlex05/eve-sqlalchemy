@@ -48,8 +48,15 @@ class SQLAResultCollection(object):
                                                  self._max_results)
 
     def __iter__(self):
-        for i in self._query:
-            yield sqla_object_to_dict(i, self._fields)
+        try:
+            # Intenta usar el método mappings() directamente (estilo SQLAlchemy 2.0)
+            iterator = self._query.mappings()
+        except AttributeError:
+            # Si no está disponible (por ejemplo, si self._query es un BaseQuery legado),
+            # obtenemos el statement y lo ejecutamos usando el session.execute()
+            iterator = self._query.session.execute(self._query.statement).mappings()
+        for row in iterator:
+            yield sqla_object_to_dict(row._data[0], self._fields)
 
     def count(self, **kwargs):
         return self._count

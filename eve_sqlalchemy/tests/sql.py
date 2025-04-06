@@ -140,7 +140,7 @@ class TestSQLParser(TestCase):
     def test_parse_adv_dictionary(self):
         r = parse_dictionary({'username': ['john', 'dylan']}, self.model)
         self.assertEqual(str(r[0]),
-                         'contacts.username IN (:username_1, :username_2)')
+                         'contacts.username IN (:username_1_1, :username_1_2)')
 
     def test_parse_sqla_operators(self):
         r = parse_dictionary({'username': 'ilike("john%")'}, self.model)

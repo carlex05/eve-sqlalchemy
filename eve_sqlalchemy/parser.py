@@ -102,7 +102,7 @@ def parse_dictionary(filter_dict, model):
                     new_filter = attr.op(new_op)(v)
             except (TypeError, ValueError):  # json/sql parse error
                 if isinstance(v, list):  # we have an array
-                    new_filter = attr.in_(v)
+                    new_filter = attr.in_(v).compile(compile_kwargs={"render_postcompile": True})
                 else:
                     new_filter = sqla_op.eq(attr, v)
             conditions.append(new_filter)
