@@ -108,6 +108,22 @@ DOMAIN['contacts']['schema']['anumber'].update({
 #     'internal_resource': True,
 # })
 
+contacts_hide_born = copy.deepcopy(DOMAIN['contacts'])
+contacts_hide_born["url"] = "contacts/hide_born"
+# Asegúrate de que la fuente ('source') sea la misma que para 'contacts'
+contacts_hide_born["datasource"]["source"] = "Contacts"
+# Especifica la proyección para omitir el campo 'born'
+contacts_hide_born["datasource"]["projection"] = {"born": 0}
+# Agrega el recurso al DOMAIN
+DOMAIN['contacts_hide_born'] = contacts_hide_born
+
+contacts_hide_media = copy.deepcopy(DOMAIN['contacts'])
+contacts_hide_media["url"] = "contacts/hide_media"
+contacts_hide_media["datasource"]["source"] = "contacts"
+contacts_hide_media["datasource"]["projection"] = {"media": 0, "born": 0}
+DOMAIN['contacts_hide_media'] = contacts_hide_media
+
+
 users = copy.deepcopy(DOMAIN['contacts'])
 users['url'] = 'users'
 users['datasource'] = {'source': 'Contacts',

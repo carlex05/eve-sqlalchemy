@@ -25,6 +25,7 @@ from .utils import (
     sqla_object_to_dict, validate_filters,
 )
 
+
 db = flask_sqlalchemy.SQLAlchemy()
 
 try:
@@ -291,7 +292,7 @@ class SQL(DataLayer):
         return self.driver.app.config['DOMAIN'][resource]['id_field']
 
     def _model(self, resource):
-        return self.driver.Model._decl_class_registry[self._source(resource)]
+        return {mapper.class_.__name__: mapper.class_ for mapper in self.driver.Model.registry.mappers}[self._source(resource)]
 
     def _parse_filter(self, model, filter):
         """

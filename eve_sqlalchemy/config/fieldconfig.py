@@ -141,21 +141,43 @@ class RelationshipFieldConfig(FieldConfig):
 
     def _get_resource(self):
         try:
-            print('self._related_resource_configs', self._related_resource_configs)
-            print('self._model', self._model)
-            print('self._name', self._name)
-            print('self._related_resource_configs[(self._model, self._name)]', 
-                  self._related_resource_configs[(self._name, self._model)])
-            return self._related_resource_configs[(self._name, self._model)]
+            #print('self._related_resource_configs', self._related_resource_configs)
+            #print('self._model', self._model)
+            #print('self._name', self._name)
+            #print('self._related_resource_configs[(self._model, self._name)]', 
+                  #self._related_resource_configs[(self._model, self._name)])
+            return self._related_resource_configs[(self._model, self._name)]
         except LookupError:
             try:
                 arg = self._relationship.argument
                 if isinstance(arg, DeclarativeMeta):
-                    return self._related_resource_configs[arg]
+                    key2 = arg
                 elif callable(arg):
-                    return self._related_resource_configs[arg()]
+                    key2 = arg()
+                elif isinstance(arg, str):
+                    # Buscar en las claves del diccionario una cuyo __name__ coincida con la cadena
+                    key2 = None
+                    for key in self._related_resource_configs.keys():
+                        # Se asume que key es una clase o tupla que contenga la clase
+                        if hasattr(key, '__name__') and key.__name__ == arg:
+                            key2 = key
+                            break
+                    if key2 is None:
+                        raise ConfigException(
+                            'Cannot determine related resource for {model}.{field} using string argument: {arg}. '
+                            'Please specify `related_resources` manually.'
+                            .format(model=self._model.__name__, field=self._name, arg=arg))
                 else:
-                    return self._related_resource_configs[arg.class_]
+                    # Si no es ninguno de los casos anteriores, se intenta acceder a arg.class_
+                    key2 = arg.class_
+
+                if key2 in self._related_resource_configs:
+                    return self._related_resource_configs[key2]
+                else:
+                    raise ConfigException(
+                    'Cannot determine related resource for {model}.{field}. '
+                    'Please specify `related_resources` manually.'
+                    .format(model=self._model.__name__, field=self._name))
             except LookupError:
                 raise ConfigException(
                     'Cannot determine related resource for {model}.{field}. '
@@ -193,7 +215,20 @@ class AssociationProxyFieldConfig(FieldConfig):
             try:
                 relationship = self._mapper.relationships[
                     self._field.target_collection]
-                return self._related_resource_configs[relationship.argument()]
+                arg = relationship.argument
+                key2 = None
+                for key in self._related_resource_configs.keys():
+                    # Se asume que key es una clase o tupla que contenga la clase
+                    if hasattr(key, '__name__') and key.__name__ == arg:
+                        key2 = key
+                        break
+                if key2 is None:
+                    raise ConfigException(
+                        'Cannot determine related resource for {model}.{field}. '
+                        'Please specify `related_resources` manually.'
+                        .format(model=model.__name__,
+                                field=self._name))
+                return self._related_resource_configs[key2]
             except LookupError:
                 model = self._mapper.class_
                 raise ConfigException(
